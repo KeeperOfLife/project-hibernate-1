@@ -1,23 +1,48 @@
 package com.game.entity;
 
+import com.game.repository.PlayerRepositoryDB;
+import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
+
 import java.util.Date;
 
-
+@NamedQueries({
+        @NamedQuery(
+                name = "getAllCount",
+                query = "select count(p) from Player p"
+        )
+})
+@Entity
+@Table(schema = "rpg", name = "player")
 public class Player {
+    @Id
+    @GeneratedValue(generator = "sequence-gen")
+    @GenericGenerator(
+            name = "sequence-gen",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @org.hibernate.annotations.Parameter(name = "sequence_name", value = "player_sequence"),
+                    @org.hibernate.annotations.Parameter(name = "initial_value", value = "41"),
+                    @org.hibernate.annotations.Parameter(name = "increment_size", value = "1")
+            }
+    )
+    @Column(nullable = false)
     private Long id;
-
+    @Column(length = 12, nullable = false)
     private String name;
-
+    @Column(length = 30, nullable = false)
     private String title;
-
+    @Enumerated(EnumType.ORDINAL)
+    @Column(nullable = false)
     private Race race;
-
+    @Enumerated(EnumType.ORDINAL)
+    @Column(nullable = false)
     private Profession profession;
-
+    @Column(nullable = false)
     private Date birthday;
-
+    @Column(nullable = false)
     private Boolean banned;
-
+    @Column(nullable = false)
     private Integer level;
 
     public Player() {
