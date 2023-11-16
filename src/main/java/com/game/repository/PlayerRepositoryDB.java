@@ -23,8 +23,8 @@ public class PlayerRepositoryDB implements IPlayerRepository {
     public PlayerRepositoryDB() {
         Properties properties = new Properties();
         properties.put(Environment.DIALECT, "org.hibernate.dialect.MySQL8Dialect");
-        properties.put(Environment.DRIVER, "com.mysql.cj.jdbc.Driver");
-        properties.put(Environment.URL, "jdbc:mysql://localhost:3306/rpg");
+        properties.put(Environment.DRIVER, "com.p6spy.engine.spy.P6SpyDriver");
+        properties.put(Environment.URL, "jdbc:p6spy:mysql://localhost:3306/rpg");
         properties.put(Environment.USER, "root");
         properties.put(Environment.PASS, "root");
         properties.put(Environment.HBM2DDL_AUTO, "update");
@@ -47,7 +47,7 @@ public class PlayerRepositoryDB implements IPlayerRepository {
 
     @Override
     public int getAllCount() {
-        try(Session session = sessionFactory.openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             Query<Long> playerGetAllCount = session.createNamedQuery("getAllCount", Long.class);
             return Math.toIntExact(playerGetAllCount.uniqueResult());
         }
@@ -61,40 +61,58 @@ public class PlayerRepositoryDB implements IPlayerRepository {
             transaction.begin();
             session.persist(player);
             transaction.commit();
-            session.close();
             return player;
         } catch (Exception e) {
             transaction.rollback();
-            session.close();
             e.printStackTrace();
         } finally {
             session.close();
         }
-//        try (Session session = SESSION_FACTORY.openSession()) {
-//            Transaction transaction = session.getTransaction();
-//            transaction.begin();
-//            session.persist(player);
-//            transaction.commit();
-//            return player;
-//        } catch (Exception e) {
-//
-//        }
         return player;
     }
 
     @Override
     public Player update(Player player) {
-        return null;
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.getTransaction();
+        try {
+            transaction.begin();
+            Player mergePlayer = (Player) session.merge(player);
+            transaction.commit();
+            return mergePlayer;
+        } catch (Exception e) {
+            transaction.rollback();
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+        return player;
     }
 
     @Override
     public Optional<Player> findById(long id) {
-        return Optional.empty();
+        try (Session session = sessionFactory.openSession()) {
+            Player player = session.find(Player.class, id);
+            return Optional.ofNullable(player);
+        }
     }
 
     @Override
     public void delete(Player player) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.getTransaction();
 
+        try {
+            transaction.begin();
+            session.delete(player);
+            transaction.commit();
+            session.close();
+        } catch (Exception e) {
+            transaction.rollback();
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
     }
 
     @PreDestroy

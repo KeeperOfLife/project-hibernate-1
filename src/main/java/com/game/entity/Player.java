@@ -1,6 +1,5 @@
 package com.game.entity;
 
-import com.game.repository.PlayerRepositoryDB;
 import jakarta.persistence.*;
 import org.hibernate.annotations.GenericGenerator;
 
